@@ -1,0 +1,168 @@
+#!/usr/bin/perl
+
+use Getopt::Long;
+use Pod::Usage;
+use IPC::Run qw( run );
+use strict;
+
+my $opt_debug;
+my $opt_help;
+my $opt_manual;
+my $opt_stop = 1;
+
+##############################################################################
+# Subroutines
+##############################################################################
+
+sub run_cmd {
+    my @cmd = @_;
+
+    if ($opt_debug) {
+        print 'running command:' . join(q{ }, @cmd) . "\n";
+    }
+
+    my $in;
+    my $out;
+    my $err;
+    eval { run(\@cmd, \$in, \$out, \$err); };
+    if ($@ || $err) {
+        print 'ERROR: Problem executing:' . join(q{ }, @cmd) . "\n";
+        print $err;
+        die "Execution abandoned\n";
+    }
+    print $out;
+    return;
+}
+
+##############################################################################
+# Main Routine
+##############################################################################
+
+GetOptions(
+    'debug'  => \$opt_debug,
+    'help'   => \$opt_help,
+    'manual' => \$opt_manual,
+    'stop!'  => \$opt_stop
+);
+
+# Flush output immediately
+$| = 1;
+
+# -- help the poor souls out
+pod2usage(-verbose => 2) if $opt_manual;
+pod2usage(-verbose => 0) if $ARGV[0] || $opt_help;
+
+my $config_ldif = '/tmp/cn-config.ldif';
+my $conf_dir    = '/etc/ldap/slapd.d';
+
+if (!-e $config_ldif) {
+    print "ERROR: $config_ldif file not found\n";
+    exit 1;
+}
+
+# If there is a current directory then prepare to back it up.
+my $backup_dir;
+if (-e $conf_dir) {
+    my $cnt   = 1;
+    my $limit = 30;
+    while (!$backup_dir) {
+        my $test_dir = "/etc/ldap/slapd.d-$cnt";
+        if (-e $test_dir) {
+            if ($cnt++ > $limit) {
+                print "ERROR: too many backups.  Clean up /etc/ldap\n";
+                exit 1;
+            }
+        } else {
+            $backup_dir = $test_dir;
+        }
+    }
+} else {
+    $backup_dir = $conf_dir;
+}
+
+# Clean out any old work
+my $new_dir = '/etc/ldap/slapd.d-new';
+if (-e $new_dir) {
+    print "Cleaning up $new_dir ...\n";
+    run_cmd('/bin/rm', '-rfv', $new_dir);
+}
+mkdir $new_dir;
+
+# Load into the new directory
+print "Creating configuration database ...\n";
+run_cmd('/usr/sbin/slapadd', '-b', 'cn=config', '-F', $new_dir,
+    '-l', $config_ldif);
+
+# Shutdown slapd
+my $out;
+open($out, '>/etc/noldap');
+close $out;
+if ($opt_stop) {
+    run_cmd('/usr/sbin/service', 'slapd', 'stop');
+}
+
+# Rename current directory to backup directory
+if (-e $conf_dir) {
+    print "Backing up $conf_dir to $backup_dir ...\n";
+    rename $conf_dir, $backup_dir;
+}
+
+# rename new directory to current directory
+print "Moving configuration in place ...\n";
+rename $new_dir, $conf_dir;
+
+print "Remember to restart the server.\n";
+
+exit;
+
+__END__
+
+##############################################################################
+# Documentation
+##############################################################################
+
+=head1 NAME
+
+ldap-load-config
+
+=head1 SYNOPSIS
+
+ldap-load-config [--debug] [--help] [--manual]
+
+=head1 DESCRIPTION
+
+This script creates a new OpenLDAP configuration database from an
+input ldif file.  The input file must be named /tmp/cn-config.ldif.
+The existing database is preserved in the /etc/ldap/slapd.d-n
+directory where n is a version number not greater than 30.  The server
+is shutdown and the new configuration is moved into place, but the
+slapd server is not restarted.
+
+=head1 OPTIONS
+
+=over 4
+
+=item --debug
+
+Display debugging output.
+
+=item --help
+
+A short help message.
+
+=item --manual
+
+The complete documentation.
+
+=back
+
+=head1 AUTHOR
+
+Bill MacAllister <whm@stanford.edu>
+
+=head1 COPYRIGHT
+
+Copyright 2013 Board of Trustees, Leland Stanford Jr. University.
+All rights reserved.
+
+=cut

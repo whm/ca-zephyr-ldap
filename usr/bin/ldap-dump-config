@@ -1,0 +1,81 @@
+#!/bin/bash
+#
+# This scripts dumps the cn=config configuration
+
+if [ "$1" = "help" ]
+then
+    echo "Usage: ldap-dump-config [help|manual]"
+    exit 1
+fi
+if [ "$1" = "manual" ]
+then
+    pod2text $0
+    exit 1
+fi
+if [ "$1" = "force" ]
+then
+    forceSW="-f"
+fi
+
+thisDate=`date +%Y%m%d`
+thisYear=`date +%Y`
+outDir="/afs/cz/backup/ldap/${thisYear}"
+thisHost=`hostname`
+configDB="${thisHost%%.*}-${thisDate}-config.ldif"
+
+if [ ! -e $outDir ]
+then
+    mkdir -p $outDir
+fi
+
+outFile="/tmp/cn-config.ldif"
+echo "Writing to $outFile"
+/usr/sbin/slapcat -F /etc/ldap/slapd.d -b cn=config > $outFile
+
+echo "Copying to archive directory ..."
+cp -v $forceSW $outFile $outDir/$configDB
+
+##############################################################################
+# Documentation
+##############################################################################
+
+DOCS=<<__END_OF_DOCS__
+=head1 NAME
+
+ldap-dump-config - Dump the cn=config OpenLDAP configuration
+
+=head1 SYNOPSIS
+
+ldap-dump-config [help|manual|force]
+
+=head1 DESCRIPTION
+
+This script dumps the cn=config configuration in LDIF format to the
+file /tmp/cn-config.ldif.  A date stamped copy of the file is also
+save in the /afs/cz/backup/ldap/<year> AFS directory.
+
+The local slapd server is NOT stopped during the dump.
+
+The force action overwrites output files without prompting for 
+confirmation.
+
+=head1 OPTIONS
+
+=over 4
+
+=item help
+
+A short help message.
+
+=item manual
+
+This documentation.
+
+=back
+
+=head1 AUTHOR
+
+Bill MacAllister <bill@ca-zephyr.org>
+
+=cut
+__END_OF_DOCS__

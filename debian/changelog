@@ -1,0 +1,5 @@
+ca-zephyr-ldap (1) unstable; urgency=low
+
+  * Initial packaging of utility scripts.
+
+ -- Bill MacAllister <bill@ca-zephyr.org>  Sun, 26 May 2019 06:07:19 +0000

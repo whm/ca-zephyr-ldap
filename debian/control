@@ -1,0 +1,24 @@
+Source: ca-zephyr-ldap
+Section: admin
+Priority: optional
+Maintainer: Bill MacAllister <bill@ca-zephyr.org>
+Build-Depends: debhelper (>= 9),
+ libappconfig-perl,
+ libgetopt-long-descriptive-perl,
+ libipc-run-perl,
+ libterm-readpassword-perl,
+ perl,
+ perl-doc,
+ perltidy
+Standards-Version: 3.9.8
+
+Package: ca-zephyr-ldap
+Architecture: all
+Depends: ${misc:Depends}, ${perl:Depends},
+ libappconfig-perl,
+ libgetopt-long-descriptive-perl,
+ libipc-run-perl,
+ perl-doc
+Description: Utility scripts for CA Zephyr LDAP servers
+ This package contains scripts to aid in the maintenance of
+ LDAP servers at Shelter Cove.

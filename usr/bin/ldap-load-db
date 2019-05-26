@@ -1,0 +1,194 @@
+#!/bin/bash
+#
+# This dumps the dc=stanford,dc=edu directory.
+#
+# Copyright 2013 Board of Trustees, Leland Stanford Jr. University All
+# rights reserved.
+
+# -----------------------------------
+# Delete files only if they are there
+
+function del {
+    for f in $*
+    do
+      if [ -d $f ]
+          then
+          echo "skipping directory $f"
+      else
+          if [ -e $f ]
+              then
+              echo "deleteing $f"
+              rm $f
+          fi
+      fi
+    done
+}
+
+##############################################################################
+# Main Routine
+##############################################################################
+
+# Set the configuration to use for the load
+if [ "$1" = "help" ]
+then
+    echo "Usage: ldap-load-db [db] [help|manual|files|config]"
+    exit 1
+fi
+if [ "$1" = "manual" ]
+then
+    pod2text $0
+    exit 1
+fi
+
+# Get the database to reload
+if [ "$1" = "" ]
+then
+    echo "ERROR: db required as parameter 1"
+    echo ""
+    echo "Valid dbs are:"
+    ls -d /var/lib/ldap/*
+    exit 1
+fi
+db=$1
+dbDir="/var/lib/ldap/$db"
+if [ -e $dbDir ]
+then
+    echo "Cleaning out $dbDir"
+else
+    echo "ERROR: $dbDir not found"
+    exit 1
+fi
+
+# Decide on a configuration style to use
+if [ "$2" = "files" ]
+then
+    config="-f /etc/ldap/slapd-cn.conf"
+fi
+if [ "$2" = "config" ]
+then
+    config="-F /etc/ldap/slapd.d"
+fi
+
+if [ "$config" = "" ]
+then
+    echo "Using default configuration for load"
+else
+    echo "Using $config for load"
+fi
+
+if [ "$db" = "macallister" ]
+then
+    dbDN="dc=macallister,dc=grass-valley,dc=ca,dc=us"
+else
+    if [ "$db" = "ca-zephyr" ]
+    then
+        dbDN="dc=ca-zephyr,dc=org"
+    else
+        echo "Unknown dbid."
+        exit 1
+    fi
+fi
+
+cd /tmp
+
+dbRoot="/tmp/db-ldif-${db}.0"
+dbFile="${dbRoot}.gz"
+dbBackup="/tmp/db-ldif-backup-${db}.0.gz"
+if [ ! -e $dbFile ]
+    then
+    if [ -e $dbBackup ]
+        then
+        echo "Restoring $dbBackup ..."
+        cp $dbBackup $dbFile
+    else
+        echo "ERROR: no input files found."
+        echo "Files: $dbBackup or ${dbFile}."
+        echo "FATAL ABORT"
+        exit 1
+    fi
+fi
+
+del $dbRoot
+del $dbBackup
+cp $dbFile $dbBackup
+
+echo "Uncompressing ..."
+/bin/gunzip $dbFile
+if [ $? -ne 0 ]
+then
+    echo "ERROR: problem unzipping input file"
+    exit 1
+fi
+
+touch /etc/noldap
+/usr/sbin/service slapd stop
+
+# Clean out the current database
+del /var/lib/ldap/$db/*
+if [ -e /var/lib/ldap/accesslog ]
+then
+    del /var/lib/ldap/accesslog/*
+else
+    mkdir /var/lib/ldap/accesslog
+fi
+
+# Empty file system cache.  This most useful for mdb loads to free
+# memory, and doesn't hurt bdb loads.
+sync
+set +o noclobber
+echo 3 > /proc/sys/vm/drop_caches
+
+/usr/sbin/slapadd -q $config -b $dbDN -l $dbRoot
+
+echo "Load complete.  Don't forget to start slapd."
+
+# Documentation.  Use a hack to hide this from the shell.  Because of the
+# above exit line, this should never be executed.
+DOCS=<<__END_OF_DOCS__
+=head1 NAME
+
+ldap-load-db - Load an OpenLDAP directory
+
+=head1 SYNOPSIS
+
+ldap-load-db dbID [help|manual|files|config]
+
+=head1 DESCRIPTION
+
+This script uses slapadd to load an OpenLDAP directory.  The database
+directory is assumed to be in /var/lib/ldap.  The accesslog directory
+will be created if needed.  The input LDIF file is assumed to be
+/tmp/db-ldif-<dbID>.0.gz.
+
+The load process is very careful about the input LDIF file.  It is
+backed up before being uncompressed and will be restored if the
+process is restarted.
+
+=head1 OPTIONS
+
+=over 4
+
+=item help
+
+A short help message.
+
+=item manual
+
+This documentation.
+
+=item files
+
+Use the /etc/ldap/slapd.conf configuration file.
+
+=item config
+
+Use the cn=config data base at /etc/ldap/slapd.d.
+
+=back
+
+=head1 AUTHOR
+
+Bill MacAllister <bill@ca-zephyr.org>
+
+=cut
+__END_OF_DOCS__

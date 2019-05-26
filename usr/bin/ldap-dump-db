@@ -1,0 +1,89 @@
+#!/bin/bash
+#
+# This scripts dumps the ldap databases
+
+if [ "$1" = "help" ]
+then
+    echo "Usage: ldap-dump-db [help|manual|force]"
+    exit 1
+fi
+if [ "$1" = "manual" ]
+then
+    pod2text $0
+    exit 1
+fi
+if [ "$1" = "force" ]
+then
+    forceSW="-f"
+fi
+
+thisDate=`date +%Y%m%d`
+thisYear=`date +%Y`
+outDir="/afs/cz/backup/ldap/${thisYear}"
+thisHost=`hostname`
+
+for baseDN in dc=macallister,dc=grass-valley,dc=ca,dc=us dc=ca-zephyr,dc=org
+do
+    rdn="${baseDN%%,*}"
+    dbid="${rdn#dc=}"
+    fullDB="${thisHost%%.*}-${dbid}-${thisDate}.ldif"
+
+    if [ ! -e $outDir ]
+    then
+        mkdir -p $outDir
+    fi
+
+    echo "starting dump to /tmp/$fullDB ..."
+    /usr/sbin/slapcat -b $baseDN > /tmp/$fullDB
+
+    echo "compressing $fullDB ..."
+    /bin/gzip $forceSW /tmp/$fullDB
+
+    echo "Copying ${fullDB}.gz to $outDir ..."
+    cp -v $forceSW /tmp/${fullDB}.gz $outDir
+done
+
+##############################################################################
+# Documentation
+##############################################################################
+DOCS=<<__END_OF_DOCS__
+=head1 NAME
+
+ldap-dump-db - Dump the LDAP databases
+
+=head1 SYNOPSIS
+
+ldap-dump-db [help|manual|force]
+
+=head1 DESCRIPTION
+
+This script dumps the dc=macallister,dc=grass-valley,dc=ca,dc=us and
+the dc=ca-zephyr,dc=org databases in LDIF format to the file 
+/tmp/db-ldif.0.gz. A date stamped copy of the file is also saved in the
+/afs/cz/backup/ldap/<year> AFS directory.
+
+The local slapd server is NOT stopped during the dump.
+
+The force action overwrites output files without prompting for 
+confirmation.
+
+=head1 OPTIONS
+
+=over 4
+
+=item help
+
+A short help message.
+
+=item manual
+
+This documentation.
+
+=back
+
+=head1 AUTHOR
+
+Bill MacAllister <whm@cz-zephyr.org>
+
+=cut
+__END_OF_DOCS__
