@@ -28,11 +28,6 @@ do
     dbid="${rdn#dc=}"
     fullDB="${thisHost%%.*}-${dbid}-${thisDate}.ldif"
 
-    if [ ! -e $outDir ]
-    then
-        mkdir -p $outDir
-    fi
-
     echo "starting dump to /tmp/$fullDB ..."
     /usr/sbin/slapcat -b $baseDN > /tmp/$fullDB
 

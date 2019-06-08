@@ -23,11 +23,6 @@ outDir="/afs/cz/backup/ldap/${thisYear}"
 thisHost=`hostname`
 configDB="${thisHost%%.*}-${thisDate}-config.ldif"
 
-if [ ! -e $outDir ]
-then
-    mkdir -p $outDir
-fi
-
 outFile="/tmp/cn-config.ldif"
 echo "Writing to $outFile"
 /usr/sbin/slapcat -F /etc/ldap/slapd.d -b cn=config > $outFile
