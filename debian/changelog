@@ -1,3 +1,9 @@
+ca-zephyr-ldap (2) unstable; urgency=medium
+
+  * Add in the php monitor script to monitor server statistics.
+
+ -- Bill MacAllister <bill@ca-zephyr.org>  Fri, 30 Aug 2019 06:09:48 +0000
+
 ca-zephyr-ldap (1) unstable; urgency=low
 
   * Initial packaging of utility scripts.
