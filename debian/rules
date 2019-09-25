@@ -1,8 +1,9 @@
 #!/usr/bin/make -f
 
-PACKAGE := $(shell dh_listpackages)
+SCRIPTSPACKAGE := cz-ldap-scripts
+MONITORPACKAGE := cz-ldap-monitor
 VERSION := $(shell dpkg-parsechangelog | grep ^Version: | cut -d' ' -f2 \
-                | cut -d- -f1)
+				| cut -d- -f1)
 
 %:
 	dh $@
@@ -11,9 +12,16 @@ override_dh_auto_test:
 	cd tests; make verbose
 
 override_dh_auto_install:
-	mkdir -p debian/$(PACKAGE)/usr/share/man/man1
+	mkdir -p debian/$(SCRIPTSPACKAGE)/usr/share/man/man1
 	set -e; for script in `ls usr/bin` ; do \
-	    pod2man --release=$(VERSION) --section 1 \
-		--center=$(PACKAGE) usr/bin/$${script} \
-		> debian/$(PACKAGE)/usr/share/man/man1/$$script.1 ; \
+		pod2man --release=$(VERSION) --section 1 \
+		--center=$(SCRIPTSPACKAGE) usr/bin/$${script} \
+		> debian/$(SCRIPTSPACKAGE)/usr/share/man/man1/$$script.1 ; \
+	done
+	mkdir -p debian/$(MONITORPACKAGE)/usr/share/man/man1
+	set -e; for script in `ls usr/share/cz-ldap-monitor/cgi-bin/` ; do \
+		pod2man --release=$(VERSION) --section 1 \
+		--center=$(MONITORPACKAGE) \
+		usr/share/cz-ldap-monitor/cgi-bin/$${script} \
+		> debian/$(MONITORPACKAGE)/usr/share/man/man1/$$script.1 ; \
 	done

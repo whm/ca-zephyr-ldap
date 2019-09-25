@@ -1,4 +1,4 @@
-Source: ca-zephyr-ldap
+Source: cz-ldap-utils
 Section: admin
 Priority: optional
 Maintainer: Bill MacAllister <bill@ca-zephyr.org>
@@ -9,16 +9,33 @@ Build-Depends: debhelper (>= 9),
  libterm-readpassword-perl,
  perl,
  perl-doc,
- perltidy
+ perltidy,
+ php7.2-cli,
+ php7.2-ldap
+Replaces: ca-zephyr-ldap
+Breaks: ca-zephyr-ldap
 Standards-Version: 3.9.8
 
-Package: ca-zephyr-ldap
+Package: cz-ldap-scripts
 Architecture: all
 Depends: ${misc:Depends}, ${perl:Depends},
  libappconfig-perl,
  libgetopt-long-descriptive-perl,
  libipc-run-perl,
  perl-doc
+Replaces: ca-zephyr-ldap
+Breaks: ca-zephyr-ldap
 Description: Utility scripts for CA Zephyr LDAP servers
  This package contains scripts to aid in the maintenance of
- LDAP servers at Shelter Cove.
+ LDAP servers.
+
+Package: cz-ldap-monitor
+Architecture: all
+Depends: ${misc:Depends},
+ apache2,
+ libapache2-mod-php7.2,
+ ldap-utils,
+ php7.2-ldap
+Replaces: ca-zephyr-ldap
+Breaks: ca-zephyr-ldap
+Description: A primitive real time monitor for OpenLDAP servers.

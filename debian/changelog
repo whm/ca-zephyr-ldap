@@ -1,3 +1,11 @@
+cz-ldap-utils (3) unstable; urgency=medium
+
+  * Rename repository from ca-zephyr-ldap.
+  * Add binary packages cz-ldap-scripts and cz-ldap-monitor.
+  * Correct handling of contextCSN when they are multiple rid's.
+
+ -- Bill MacAllister <whm@dropbox.com>  Wed, 25 Sep 2019 18:42:45 +0000
+
 ca-zephyr-ldap (2) unstable; urgency=medium
 
   * Add in the php monitor script to monitor server statistics.

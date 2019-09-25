@@ -1,7 +1,7 @@
 <?php
 
 // --------------------------------------------
-// file: monitor.php
+// file: cz-ldap-monitor.php
 // author: Bill MacAllister
 
 if (strlen($_REQUEST['reload_interval']) == 0) {
@@ -10,22 +10,7 @@ if (strlen($_REQUEST['reload_interval']) == 0) {
     $_REQUEST['reload_interval'] = 5;
 }
 
-// The configuration file must define:
-//
-//  * The hash $serverGroups that defined the server groups and
-//    each groups members.
-//  * The array $dnList that list the root DNs of the replicated
-//    backends.
-//
-// Example:
-//
-// $serverGroups['cz']['cz master'] = 'shelter-ldap.ca-zephyr.internal';
-// $serverGroups['cz']['cz slave']  = 'shelter-ldap-slave.ca-zephyr.internal';
-// $dnList = array(
-//         'dc=macallister,dc=grass-valley,dc=ca,dc=us',
-//         'dc=ca-zephyr,dc=org');
-//		  
-require('/etc/cz-ldap-monitor.php');
+require('/etc/cz-ldap-monitor.conf');
 
 // ---------------------------------------------
 // zulu date
@@ -157,23 +142,29 @@ function info_contextcsn ($id, $ls) {
   $return_attr = array('contextcsn');
   $br = '';
 
+  $ldapinfo[$id]['contextcsn']    = '';
+  $ldapinfo[$id]['contextcsnRaw'] = '';
+
   foreach ($dnList as $base_dn) {
-    $dn_part = explode(',', $base_dn);
-    $ldapinfo[$id]['contextcsn']    .= $br . $dn_part[0] . ': ';
+    $ldapinfo[$id]['contextcsn']    .= "$br  $base_dn:\n";
     $ldapinfo[$id]['contextcsnRaw'] .= $ldapinfo[$id]['contextcsn'];
     $dirServer = ldap_connect_anonbind($ls);
     $sr = @ldap_read($dirServer, $base_dn, $filter, $return_attr);
     $info = @ldap_get_entries($dirServer, $sr);
     $ret_cnt = $info["count"];
     if ($ret_cnt) {
+      $csn_br = "<br/>\n    ";
       for ($i=0; $i<$ret_cnt; $i++) {
-          $nc_cnt = $info[$i]['contextcsn']['count'];
-          for ($j=0; $j<$nc_cnt; $j++) {
-              $nc = $info[$i]["contextcsn"][$j];
-              $ldapinfo[$id]['contextcsn']
-                  .= zulu_date($info[$i]["contextcsn"][$j]);
-              $ldapinfo[$id]['contextcsnRaw']
-                  .= $info[$i]["contextcsn"][$j];
+          $csn_cnt = $info[$i]['contextcsn']['count'];
+          for ($j=0; $j<$csn_cnt; $j++) {
+              $csn = $info[$i]["contextcsn"][$j];
+              $csn_bits = explode('#', $csn);
+              $csn_zulu = $csn_bits[0];
+              $csn_rid  = $csn_bits[2];
+              $csn_display = $csn_br . $csn_rid . ': ' . zulu_date($csn_zulu);
+              $csn_raw     = $csn_br . $csn;
+              $ldapinfo[$id]['contextcsn']    .= $csn_display;
+              $ldapinfo[$id]['contextcsnRaw'] .= $csn_raw;
           }
       }
     } else {
@@ -182,7 +173,7 @@ function info_contextcsn ($id, $ls) {
       $ldapinfo[$id]['contextcsnRaw']
           .= '<font color="red">Connect Failed</font>';
     }
-    $br = "<br>\n";
+    $br = "<br/>\n";
   }
   return;
 }
@@ -211,6 +202,9 @@ function info_namingcontexts ($id, $ls) {
             $nc_cnt = $info[$i]['namingcontexts']['count'];
             for ($j=0; $j<$nc_cnt; $j++) {
                 $nc = $info[$i]["namingcontexts"][$j];
+                if (is_empty($nc)) {
+                  $nc = "cn=''";
+                }
                 $ldapinfo[$id]['namingcontexts']
                     .= $br.$info[$i]["namingcontexts"][$j];
                 $br = "<br>\n";
@@ -624,3 +618,72 @@ if (strlen($_SESSION['msg'])>0) {
 ?>
 </body>
 </html>
+<?php
+
+/*
+############################################################################
+# Documentation
+############################################################################
+
+$pod = "
+=head1 NAME
+
+cz-ldap-monitor.php
+
+=head1 SYNOPSIS
+
+cz-ldap-monitor.php
+
+=head1 DESCRIPTION
+
+This script is intended to be run as a CGI script under the control
+of a web server.  It queries OpenLDAP servers and displays statistics
+from cn=monitor, displays the replication status, and displays the
+build version of the slapd process.
+
+=head1 CONFIGURATION
+
+The script reads the configuration file /etc/cz-ldap-monitor.conf.  The
+configuration file must be valid php and defines server groups,
+servers, and base DNs to be reported.  The configuration file must define
+the following two variables.
+
+=over 4
+
+=item $serverGroups
+
+$serverGroups is a hash that defines server groups and group
+members.
+
+=item $dnList
+
+$dnList is an array that defines list the root DNs of the replicated
+backends.
+
+=back
+
+=head2 Configuration Example
+
+    <?php
+    // file: /etc/cz-ldap-monitor.conf
+
+    $serverGroups['cz']['master'] = 'ldap-master.ca-zephyr.internal';
+    $serverGroups['cz']['slave-1']  = 'slave-1.ca-zephyr.internal';
+    $serverGroups['cz']['slave-2']  = 'slave-2.ca-zephyr.internal';
+    $dnList = array(
+         'dc=macallister,dc=grass-valley,dc=ca,dc=us',
+         'dc=ca-zephyr,dc=org');
+    ?>
+
+=head1 AUTHOR
+
+Bill MacAllister <bill@ca-zephyr.org>
+
+=head1 COPYRIGHT
+
+Copyright 2019 <bill@ca-zephyr.org> Bill MacAllister
+All rights reserved.
+
+=cut
+*/
+?>
