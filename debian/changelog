@@ -1,3 +1,9 @@
+cz-ldap-utils (4) unstable; urgency=medium
+
+  * Fix an egregious bug in cz-ldap-monitor.php.
+
+ -- Bill MacAllister <whm@dropbox.com>  Thu, 26 Sep 2019 21:08:46 +0000
+
 cz-ldap-utils (3) unstable; urgency=medium
 
   * Rename repository from ca-zephyr-ldap.

@@ -202,7 +202,7 @@ function info_namingcontexts ($id, $ls) {
             $nc_cnt = $info[$i]['namingcontexts']['count'];
             for ($j=0; $j<$nc_cnt; $j++) {
                 $nc = $info[$i]["namingcontexts"][$j];
-                if (is_empty($nc)) {
+                if (empty($nc)) {
                   $nc = "cn=''";
                 }
                 $ldapinfo[$id]['namingcontexts']
