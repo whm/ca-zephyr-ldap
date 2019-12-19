@@ -1,3 +1,15 @@
+ca-zephyr-ldap (6) unstable; urgency=medium
+
+  * Add support for conf file in ldap-dump scripts.
+
+ -- Bill MacAllister <bill@ca-zephyr.org>  Thu, 19 Dec 2019 06:45:27 +0000
+
+ca-zephyr-ldap (5) unstable; urgency=medium
+
+  * Correct paths into AFS to use the rw paths instead of ro.
+
+ -- Bill MacAllister <bill@ca-zephyr.org>  Mon, 25 Nov 2019 07:43:25 +0000
+
 cz-ldap-utils (4) unstable; urgency=medium
 
   * Fix an egregious bug in cz-ldap-monitor.php.

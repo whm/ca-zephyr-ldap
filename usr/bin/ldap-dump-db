@@ -19,7 +19,7 @@ fi
 
 thisDate=`date +%Y%m%d`
 thisYear=`date +%Y`
-outDir="/afs/cz/backup/ldap/${thisYear}"
+outDir="/afs/.cz/backup/ldap/${thisYear}"
 thisHost=`hostname`
 
 for baseDN in dc=macallister,dc=grass-valley,dc=ca,dc=us dc=ca-zephyr,dc=org
