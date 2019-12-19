@@ -1,10 +1,10 @@
-ca-zephyr-ldap (6) unstable; urgency=medium
+ca-zephyr-ldap (5) unstable; urgency=medium
 
   * Add support for conf file in ldap-dump scripts.
 
  -- Bill MacAllister <bill@ca-zephyr.org>  Thu, 19 Dec 2019 06:45:27 +0000
 
-ca-zephyr-ldap (5) unstable; urgency=medium
+ca-zephyr-ldap (3) unstable; urgency=medium
 
   * Correct paths into AFS to use the rw paths instead of ro.
 

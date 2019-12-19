@@ -22,6 +22,12 @@ thisYear=`date +%Y`
 outDir="/afs/.cz/backup/ldap/${thisYear}"
 thisHost=`hostname`
 
+# Read a configuration file if there is one
+if [ -e /etc/cz-ldap.conf ]
+then
+    source /etc/cz-ldap.conf
+fi
+
 for baseDN in dc=macallister,dc=grass-valley,dc=ca,dc=us dc=ca-zephyr,dc=org
 do
     rdn="${baseDN%%,*}"
@@ -62,6 +68,16 @@ The local slapd server is NOT stopped during the dump.
 The force action overwrites output files without prompting for 
 confirmation.
 
+=head1 CONFIGURATION
+
+The script will source the file /etc/cz-ldap.conf if it exists.  This 
+can be used to override values for the following variables:
+
+    thisDate=`date +%Y%m%d`
+    thisYear=`date +%Y`
+    outDir="/afs/.cz/backup/ldap/${thisYear}"
+    thisHost=`hostname`
+
 =head1 OPTIONS
 
 =over 4
@@ -78,7 +94,7 @@ This documentation.
 
 =head1 AUTHOR
 
-Bill MacAllister <whm@cz-zephyr.org>
+Bill MacAllister <bill@ca-zephyr.org>
 
 =cut
 __END_OF_DOCS__
