@@ -1,3 +1,12 @@
+ca-zephyr-ldap (6) unstable; urgency=medium
+
+  * Add ldap-dump-wrapper to make it easy to choose either aklog or
+    aklog-kafs.
+  * Update ldap-dump-db and ldap-dump-config to use the ldap-dump.conf
+    configuration file.
+
+ -- Bill MacAllister <bill@ca-zephyr.org>  Sat, 06 Jun 2020 20:19:05 +0000
+
 ca-zephyr-ldap (5) unstable; urgency=medium
 
   * Add support for conf file in ldap-dump scripts.

@@ -1,0 +1,140 @@
+#!/bin/bash
+#
+# This get afs tokens and then invokes the correct backup script
+
+function display_usage {
+    echo "Usage: ldap-dump-wrapper config|db|help|manual [force]"
+    exit 1
+}
+
+function get_tokens {
+    k5start -qUf $KEYTAB_FILE -- $AKLOG_CMD
+}
+    
+
+if [ "$2" = "force" ]
+then
+    forceAction="$2"
+    forceSW="-f"
+else
+    forceAction=""
+    forceSW=""
+fi
+
+source /etc/ldap-dump.conf
+
+thisDate=`date +%Y%m%d`
+thisYear=`date +%Y`
+outDir="$OUTPUT_DIR/${thisYear}"
+thisHost=`hostname`
+
+case "$1" in
+    help)
+	display_usage
+	;;
+    manual)
+	pod2text $0
+	exit 1
+	;;
+    config)
+	get_tokens
+	inFile="/tmp/cn-config.ldif"
+	outFile="${thisHost%%.*}-${thisDate}-config.ldif"
+	ldap-dump-config $forceAction
+	echo "Copying to archive directory ..."
+	cp -v $forceSW $inFile $OUTPUT_DIR/$outFile
+	;;
+    db)
+	get_tokens
+	for baseDN in $BASEDN_LIST
+	do
+	    rdn="${baseDN%%,*}"
+	    dbid="${rdn#dc=}"
+	    inDB="${dbid}.ldif.gz"
+	    outDB="${thisHost%%.*}-${dbid}-${thisDate}.ldif.gz"
+	    ldap-dump-db $forceAction
+	    echo "Copying ${inDB} to $outDir/$outDB ..."
+	    cp -v $forceSW /tmp/${inDB} $outDir/$outDB
+	done
+	;;
+    *)
+	display_usage
+	;;
+esac
+
+##############################################################################
+# Documentation
+##############################################################################
+
+DOCS=<<__END_OF_DOCS__
+=head1 NAME
+
+ldap-dump-wrapper - dump ldap data and copy output to AFS
+
+=head1 SYNOPSIS
+
+ldap-dump-wrapper config|db|help|manual [force]
+
+=head1 DESCRIPTION
+
+This script dumps invokes either ldap-dump-config or ldap-dump-db to
+dump ldap configuration or data respectively.  The results is copied
+to AFS.
+
+=head1 CONFIGURATION
+
+The script reads is configuration from /etc/ldap-dump.conf file.  This
+file is a sh compatible script that defines configuration properties.
+
+=over 4
+
+=item KEYTAB_FILE
+
+The keytab to be used to obtain AFS tokens.  It is assumed that there
+is only one principal in the keytab.
+
+=item AKLOG_CMD
+
+The command to use to obtain tokens.  This fill generally be either
+'aklog' or 'aklog-kafs <realm>'. 
+
+=item OUTPUT_DIR
+
+The directory to copy the output to.  If this is an AFS path ensure
+that the write path is specified.
+
+=item BASEDN_LIST
+
+A space separated list of base DNs to backup.
+
+=back
+
+
+=head1 OPTIONS
+
+=over 4
+
+=item config
+
+Backup the cn=config branch of the directory.
+
+=item db
+
+Backup the DNs listed in the BASEDN_LIST configuration variable.
+
+=item help
+
+A short help message.
+
+=item manual
+
+This documentation.
+
+=back
+
+=head1 AUTHOR
+
+Bill MacAllister <bill@ca-zephyr.org>
+
+=cut
+__END_OF_DOCS__

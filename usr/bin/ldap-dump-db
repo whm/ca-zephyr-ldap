@@ -4,7 +4,7 @@
 
 if [ "$1" = "help" ]
 then
-    echo "Usage: ldap-dump-db [help|manual|force]"
+    echo "Usage: ldap-dump-db [help|manual]"
     exit 1
 fi
 if [ "$1" = "manual" ]
@@ -17,31 +17,19 @@ then
     forceSW="-f"
 fi
 
-thisDate=`date +%Y%m%d`
-thisYear=`date +%Y`
-outDir="/afs/.cz/backup/ldap/${thisYear}"
-thisHost=`hostname`
+source /etc/ldap-dump.conf
 
-# Read a configuration file if there is one
-if [ -e /etc/cz-ldap.conf ]
-then
-    source /etc/cz-ldap.conf
-fi
-
-for baseDN in dc=macallister,dc=grass-valley,dc=ca,dc=us dc=ca-zephyr,dc=org
+for baseDN in $BASEDN_LIST
 do
     rdn="${baseDN%%,*}"
     dbid="${rdn#dc=}"
-    fullDB="${thisHost%%.*}-${dbid}-${thisDate}.ldif"
+    fullDB="${dbid}.ldif"
 
     echo "starting dump to /tmp/$fullDB ..."
     /usr/sbin/slapcat -b $baseDN > /tmp/$fullDB
 
     echo "compressing $fullDB ..."
     /bin/gzip $forceSW /tmp/$fullDB
-
-    echo "Copying ${fullDB}.gz to $outDir ..."
-    cp -v $forceSW /tmp/${fullDB}.gz $outDir
 done
 
 ##############################################################################
@@ -50,7 +38,7 @@ done
 DOCS=<<__END_OF_DOCS__
 =head1 NAME
 
-ldap-dump-db - Dump the LDAP databases
+ldap-dump-db - Dump LDAP databases
 
 =head1 SYNOPSIS
 
@@ -58,25 +46,13 @@ ldap-dump-db [help|manual|force]
 
 =head1 DESCRIPTION
 
-This script dumps the dc=macallister,dc=grass-valley,dc=ca,dc=us and
-the dc=ca-zephyr,dc=org databases in LDIF format to the file 
-/tmp/db-ldif.0.gz. A date stamped copy of the file is also saved in the
-/afs/cz/backup/ldap/<year> AFS directory.
+This script dumps LDAP data defined in the /etc/ldap-dump.conf shell
+fragment.  The files are dumped to file in /tmp and compressed.
 
 The local slapd server is NOT stopped during the dump.
 
 The force action overwrites output files without prompting for 
 confirmation.
-
-=head1 CONFIGURATION
-
-The script will source the file /etc/cz-ldap.conf if it exists.  This 
-can be used to override values for the following variables:
-
-    thisDate=`date +%Y%m%d`
-    thisYear=`date +%Y`
-    outDir="/afs/.cz/backup/ldap/${thisYear}"
-    thisHost=`hostname`
 
 =head1 OPTIONS
 
@@ -92,9 +68,13 @@ This documentation.
 
 =back
 
+=head1 SEE ALSO
+
+ldap-dump-wrapper
+
 =head1 AUTHOR
 
-Bill MacAllister <bill@ca-zephyr.org>
+Bill MacAllister <whm@cz-zephyr.org>
 
 =cut
 __END_OF_DOCS__
