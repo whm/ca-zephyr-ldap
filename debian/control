@@ -10,8 +10,8 @@ Build-Depends: debhelper (>= 9),
  perl,
  perl-doc,
  perltidy,
- php7.2-cli,
- php7.2-ldap
+ php-cli,
+ php-ldap
 Standards-Version: 3.9.8
 
 Package: cz-ldap-scripts
@@ -32,6 +32,6 @@ Depends: ${misc:Depends},
  apache2,
  libapache2-mod-php7.2,
  ldap-utils,
- php7.2-ldap
+ php-ldap
 Breaks: ca-zephyr-ldap
 Description: A primitive real time monitor for OpenLDAP servers.
