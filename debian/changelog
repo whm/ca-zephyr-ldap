@@ -1,9 +1,11 @@
-ca-zephyr-ldap (6) unstable; urgency=medium
+cz-ldap-utils (6) unstable; urgency=medium
 
   * Add ldap-dump-wrapper to make it easy to choose either aklog or
     aklog-kafs.
   * Update ldap-dump-db and ldap-dump-config to use the ldap-dump.conf
     configuration file.
+  * Rename the source package and generate separate binary packages
+    for the slapd utils and the ldap-monitor application.
   * Turn off ldif wrapping in ldap-dump-db and ldap-dump-config.
 
  -- Bill MacAllister <bill@ca-zephyr.org>  Sat, 21 Aug 2021 01:14:00 +0000

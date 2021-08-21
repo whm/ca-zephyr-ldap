@@ -12,8 +12,6 @@ Build-Depends: debhelper (>= 9),
  perltidy,
  php7.2-cli,
  php7.2-ldap
-Replaces: ca-zephyr-ldap
-Breaks: ca-zephyr-ldap
 Standards-Version: 3.9.8
 
 Package: cz-ldap-scripts
@@ -23,7 +21,6 @@ Depends: ${misc:Depends}, ${perl:Depends},
  libgetopt-long-descriptive-perl,
  libipc-run-perl,
  perl-doc
-Replaces: ca-zephyr-ldap
 Breaks: ca-zephyr-ldap
 Description: Utility scripts for CA Zephyr LDAP servers
  This package contains scripts to aid in the maintenance of
@@ -36,6 +33,5 @@ Depends: ${misc:Depends},
  libapache2-mod-php7.2,
  ldap-utils,
  php7.2-ldap
-Replaces: ca-zephyr-ldap
 Breaks: ca-zephyr-ldap
 Description: A primitive real time monitor for OpenLDAP servers.
