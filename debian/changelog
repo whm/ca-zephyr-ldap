@@ -4,8 +4,9 @@ ca-zephyr-ldap (6) unstable; urgency=medium
     aklog-kafs.
   * Update ldap-dump-db and ldap-dump-config to use the ldap-dump.conf
     configuration file.
+  * Turn off ldif wrapping in ldap-dump-db and ldap-dump-config.
 
- -- Bill MacAllister <bill@ca-zephyr.org>  Sat, 06 Jun 2020 20:19:05 +0000
+ -- Bill MacAllister <bill@ca-zephyr.org>  Sat, 21 Aug 2021 01:14:00 +0000
 
 ca-zephyr-ldap (5) unstable; urgency=medium
 

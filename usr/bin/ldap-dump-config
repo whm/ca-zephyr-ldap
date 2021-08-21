@@ -25,7 +25,7 @@ configDB="${thisHost%%.*}-${thisDate}-config.ldif"
 
 outFile="/tmp/cn-config.ldif"
 echo "Writing to $outFile"
-/usr/sbin/slapcat -F /etc/ldap/slapd.d -b cn=config > $outFile
+/usr/sbin/slapcat -o ldif-wrap=no -F /etc/ldap/slapd.d -b cn=config > $outFile
 
 ##############################################################################
 # Documentation

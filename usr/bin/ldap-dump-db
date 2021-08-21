@@ -26,7 +26,7 @@ do
     fullDB="${dbid}.ldif"
 
     echo "starting dump to /tmp/$fullDB ..."
-    /usr/sbin/slapcat -b $baseDN > /tmp/$fullDB
+    /usr/sbin/slapcat -o ldif-wrap=no -b $baseDN > /tmp/$fullDB
 
     echo "compressing $fullDB ..."
     /bin/gzip $forceSW /tmp/$fullDB
