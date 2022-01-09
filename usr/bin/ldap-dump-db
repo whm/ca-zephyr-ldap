@@ -19,6 +19,12 @@ fi
 
 source /etc/ldap-dump.conf
 
+thisDate=`date +%Y%m%d`
+thisYear=`date +%Y`
+thisMonth=`date +%m`
+outDir="/afs/.cz/backup/ldap/${thisYear}/${thisMonth}"
+thisHost=`hostname`
+
 for baseDN in $BASEDN_LIST
 do
     rdn="${baseDN%%,*}"
@@ -46,8 +52,15 @@ ldap-dump-db [help|manual|force]
 
 =head1 DESCRIPTION
 
+<<<<<<< HEAD
 This script dumps LDAP data defined in the /etc/ldap-dump.conf shell
 fragment.  The files are dumped to file in /tmp and compressed.
+=======
+This script dumps the dc=macallister,dc=grass-valley,dc=ca,dc=us and
+the dc=ca-zephyr,dc=org databases in LDIF format to the file 
+/tmp/db-ldif.0.gz. A date stamped copy of the file is also saved in the
+/afs/cz/backup/ldap/<year>/<month> AFS directory.
+>>>>>>> ldap-dump changes
 
 The local slapd server is NOT stopped during the dump.
 

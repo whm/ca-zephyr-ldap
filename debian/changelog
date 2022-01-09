@@ -1,3 +1,10 @@
+cz-ldap-utils (7) unstable; urgency=medium
+
+  * Change the AFS output directory of the ldap-dump scripts to make
+    them match the policy implemented in volcreate-logs.
+
+ -- Bill MacAllister <bill@ca-zephyr.org>  Sun, 09 Jan 2022 08:30:53 +0000
+
 cz-ldap-utils (6) unstable; urgency=medium
 
   * Add ldap-dump-wrapper to make it easy to choose either aklog or

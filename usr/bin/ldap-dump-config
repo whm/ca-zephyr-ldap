@@ -19,7 +19,8 @@ fi
 
 thisDate=`date +%Y%m%d`
 thisYear=`date +%Y`
-outDir="/afs/.cz/backup/ldap/${thisYear}"
+thisMonth=`date +%m`
+outDir="/afs/.cz/backup/ldap/${thisYear}/${thisMonth}"
 thisHost=`hostname`
 configDB="${thisHost%%.*}-${thisDate}-config.ldif"
 
