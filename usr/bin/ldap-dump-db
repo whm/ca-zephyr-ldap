@@ -4,7 +4,7 @@
 
 if [ "$1" = "help" ]
 then
-    echo "Usage: ldap-dump-db [help|manual]"
+    echo "Usage: ldap-dump-db [help|manual|force]"
     exit 1
 fi
 if [ "$1" = "manual" ]
@@ -17,26 +17,32 @@ then
     forceSW="-f"
 fi
 
-source /etc/ldap-dump.conf
-
 thisDate=`date +%Y%m%d`
 thisYear=`date +%Y`
 thisMonth=`date +%m`
 outDir="/afs/.cz/backup/ldap/${thisYear}/${thisMonth}"
 thisHost=`hostname`
 
-for baseDN in $BASEDN_LIST
-do
-    rdn="${baseDN%%,*}"
-    dbid="${rdn#dc=}"
-    fullDB="${dbid}.ldif"
+# Read a configuration file if there is one
+source /etc/ldap-backup.conf
+if [ "$DBID" = "" ]
+then
+    echo "ERROR: DBID missing"
+    exit 1
+fi
 
-    echo "starting dump to /tmp/$fullDB ..."
-    /usr/sbin/slapcat -o ldif-wrap=no -b $baseDN > /tmp/$fullDB
+fullDB="${thisHost%%.*}-${DBID}-${thisDate}.ldif"
+dbRoot="db-${DBID}.ldif"
 
-    echo "compressing $fullDB ..."
-    /bin/gzip $forceSW /tmp/$fullDB
-done
+echo "starting dump to /tmp/$fullDB ..."
+/usr/sbin/slapcat -o ldif-wrap=no -b $DBDN > /tmp/$fullDB
+
+echo "compressing $fullDB ..."
+/bin/gzip $forceSW /tmp/$fullDB
+cp -v /tmp/${fullDB}.gz /tmp/${dbRoot}.gz
+
+echo "Copying ${fullDB}.gz to $outDir ..."
+cp -v $forceSW /tmp/${fullDB}.gz $outDir
 
 ##############################################################################
 # Documentation
@@ -44,7 +50,7 @@ done
 DOCS=<<__END_OF_DOCS__
 =head1 NAME
 
-ldap-dump-db - Dump LDAP databases
+ldap-dump-db - Dump the LDAP database
 
 =head1 SYNOPSIS
 
@@ -52,20 +58,24 @@ ldap-dump-db [help|manual|force]
 
 =head1 DESCRIPTION
 
-<<<<<<< HEAD
-This script dumps LDAP data defined in the /etc/ldap-dump.conf shell
-fragment.  The files are dumped to file in /tmp and compressed.
-=======
-This script dumps the dc=macallister,dc=grass-valley,dc=ca,dc=us and
-the dc=ca-zephyr,dc=org databases in LDIF format to the file 
-/tmp/db-ldif.0.gz. A date stamped copy of the file is also saved in the
+This script dumps the LDAP data base in LDIF format and compresses it.
+A date stamped copy of the file is also saved in the
 /afs/cz/backup/ldap/<year>/<month> AFS directory.
->>>>>>> ldap-dump changes
 
 The local slapd server is NOT stopped during the dump.
 
 The force action overwrites output files without prompting for 
 confirmation.
+
+=head1 CONFIGURATION
+
+The script will source the file /etc/cz-ldap.conf if it exists.  This 
+can be used to override values for the following variables:
+
+    thisDate=`date +%Y%m%d`
+    thisYear=`date +%Y`
+    outDir="/afs/.cz/backup/ldap/${thisYear}"
+    thisHost=`hostname`
 
 =head1 OPTIONS
 
@@ -81,13 +91,9 @@ This documentation.
 
 =back
 
-=head1 SEE ALSO
-
-ldap-dump-wrapper
-
 =head1 AUTHOR
 
-Bill MacAllister <whm@cz-zephyr.org>
+Bill MacAllister <bill@ca-zephyr.org>
 
 =cut
 __END_OF_DOCS__

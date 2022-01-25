@@ -31,7 +31,7 @@ function del {
 # Set the configuration to use for the load
 if [ "$1" = "help" ]
 then
-    echo "Usage: ldap-load-db [db] [help|manual|files|config]"
+    echo "Usage: ldap-load-db [help|manual|files|config]"
     exit 1
 fi
 if [ "$1" = "manual" ]
@@ -41,16 +41,14 @@ then
 fi
 
 # Get the database to reload
-if [ "$1" = "" ]
+source /etc/ldap-backup.conf
+if [ "$DBID" = "" ]
 then
-    echo "ERROR: db required as parameter 1"
-    echo ""
-    echo "Valid dbs are:"
-    ls -d /var/lib/ldap/*
+    echo "ERROR: DBID missing"
     exit 1
 fi
-db=$1
-dbDir="/var/lib/ldap/$db"
+
+dbDir="/var/lib/ldap/$DBID"
 if [ -e $dbDir ]
 then
     echo "Cleaning out $dbDir"
@@ -76,41 +74,17 @@ else
     echo "Using $config for load"
 fi
 
-if [ "$db" = "macallister" ]
-then
-    dbDN="dc=macallister,dc=grass-valley,dc=ca,dc=us"
-else
-    if [ "$db" = "ca-zephyr" ]
-    then
-        dbDN="dc=ca-zephyr,dc=org"
-    else
-        echo "Unknown dbid."
-        exit 1
-    fi
-fi
-
 cd /tmp
 
-dbRoot="/tmp/db-ldif-${db}.0"
+dbRoot="/tmp/db-${DBID}.ldif"
 dbFile="${dbRoot}.gz"
-dbBackup="/tmp/db-ldif-backup-${db}.0.gz"
 if [ ! -e $dbFile ]
-    then
-    if [ -e $dbBackup ]
-        then
-        echo "Restoring $dbBackup ..."
-        cp $dbBackup $dbFile
-    else
-        echo "ERROR: no input files found."
-        echo "Files: $dbBackup or ${dbFile}."
-        echo "FATAL ABORT"
-        exit 1
-    fi
+then
+   echo "ERROR: input file not found. ($dbFile)"
+   exit 1
 fi
 
 del $dbRoot
-del $dbBackup
-cp $dbFile $dbBackup
 
 echo "Uncompressing ..."
 /bin/gunzip $dbFile
@@ -124,7 +98,7 @@ touch /etc/noldap
 /usr/sbin/service slapd stop
 
 # Clean out the current database
-del /var/lib/ldap/$db/*
+del /var/lib/ldap/$DBID/*
 if [ -e /var/lib/ldap/accesslog ]
 then
     del /var/lib/ldap/accesslog/*
@@ -138,7 +112,7 @@ sync
 set +o noclobber
 echo 3 > /proc/sys/vm/drop_caches
 
-/usr/sbin/slapadd -q $config -b $dbDN -l $dbRoot
+/usr/sbin/slapadd -q $config -b $DBDN -l $dbRoot
 
 echo "Load complete.  Don't forget to start slapd."
 
@@ -158,7 +132,7 @@ ldap-load-db dbID [help|manual|files|config]
 This script uses slapadd to load an OpenLDAP directory.  The database
 directory is assumed to be in /var/lib/ldap.  The accesslog directory
 will be created if needed.  The input LDIF file is assumed to be
-/tmp/db-ldif-<dbID>.0.gz.
+/tmp/db-<dbID>.gz.
 
 The load process is very careful about the input LDIF file.  It is
 backed up before being uncompressed and will be restored if the
