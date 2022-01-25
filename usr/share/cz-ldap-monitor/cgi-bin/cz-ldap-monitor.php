@@ -22,7 +22,7 @@ function zulu_date ($in) {
                  $in,
                  $mat)) {
     $zYear   = $mat[1];
-    $zMonth  = $mat{2};
+    $zMonth  = $mat[2];
     $zDay    = $mat[3];
     $zHour   = $mat[4];
     $zMinute = $mat[5];
@@ -44,7 +44,7 @@ function zulu_parts ($in) {
                  $in,
                  $mat)) {
     $zYear   = $mat[1];
-    $zMonth  = $mat{2};
+    $zMonth  = $mat[2];
     $zDay    = $mat[3];
     $zHour   = $mat[4];
     $zMinute = $mat[5];
